@@ -1,5 +1,5 @@
 # SocialNetworkApp
-A Java application that uses Gradle to buils the project and PostgreSQL to store data.
+A Java application that uses Gradle to builds the project and PostgreSQL to store data.
 The application allows the user to perform actions specific to a social network: log in, sign up, add friends, delete friends, send messages etc.
 
 The window that appears once you run the application:
