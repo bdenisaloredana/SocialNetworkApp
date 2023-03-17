@@ -6,7 +6,7 @@ The window that appears once you run the application:
 
 ![Screenshot 2023-03-05 183134](https://user-images.githubusercontent.com/126720196/222974966-23cd176a-b4f9-4e63-b326-37a13282a0b2.png)
 
-A user can choose to sign up if they don't already have an account by pressing the "Sign up" button:
+A user can choose to sign up, if they don't already have an account, by pressing the "Sign up" button:
 
 ![Screenshot 2023-03-05 183255](https://user-images.githubusercontent.com/126720196/222975107-02decfd6-1b57-443e-a9c1-8e22a520fa72.png)
 ![Screenshot 2023-03-05 183330](https://user-images.githubusercontent.com/126720196/222975129-b34676fe-5312-4088-a6ef-323995d74728.png)
