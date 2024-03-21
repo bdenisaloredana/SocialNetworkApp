@@ -19,7 +19,7 @@ public class MessageService implements Observable {
      * Constructor for the MesssageService.
      * @param repo the messages repository
      */
-    public MessageService(MessageDbRepository repo){
+    public MessageService(MessageDbRepository repo) {
         this.messageRepository = repo;
     }
 
@@ -35,7 +35,7 @@ public class MessageService implements Observable {
         notifyObservers();
     }
 
-    public void deleteMessage(Long id) throws SQLException {
+    public void deleteMessage(Long id) {
         messageRepository.delete(id);
     }
 
@@ -45,19 +45,20 @@ public class MessageService implements Observable {
      * @param friend the friend with whom the user is conversing with
      * @return the messages between the user and the friend
      */
-    public List<MessageDto> getMessagesBetweenFriends(User user, User friend){
+    public List<MessageDto> getMessagesBetweenFriends(User user, User friend) {
         List<MessageDto> result = new ArrayList<>();
-        List<Message> messages = new ArrayList<>();
-        messages = messageRepository.find(user.getId(), friend.getId());
-        for(Message m: messages)
-            result.add(new MessageDto(user.getUsername(), m.getMessageText(), m.getDate()));
+        List<Message> messages = messageRepository.find(user.getId(), friend.getId());
+        for (Message message : messages)
+            result.add(new MessageDto(user.getUsername(), message.getMessageText(), message.getDate()));
+
         messages = messageRepository.find(friend.getId(), user.getId());
-        for(Message m: messages)
-            result.add(new MessageDto(friend.getUsername(), m.getMessageText(), m.getDate()));
+        for (Message message : messages)
+            result.add(new MessageDto(friend.getUsername(), message.getMessageText(), message.getDate()));
+
         Comparator<MessageDto> compareByDate = Comparator.comparing(MessageDto::getDate);
         Collections.sort(result, compareByDate);
-        return result;
 
+        return result;
     }
 
     /***
@@ -83,9 +84,9 @@ public class MessageService implements Observable {
      */
     @Override
     public void notifyObservers() {
-        observers.stream().forEach(x-> {
+        observers.stream().forEach(observer -> {
             try {
-                x.update();
+                observer.update();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }

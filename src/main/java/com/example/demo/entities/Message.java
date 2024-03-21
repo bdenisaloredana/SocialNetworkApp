@@ -15,7 +15,7 @@ public class Message extends Entity<Long> {
      * @param messageText the text of the message
      * @param date the date of the message
      */
-    public Message(Long idSender, Long idReceiver, String messageText, LocalDateTime date){
+    public Message(Long idSender, Long idReceiver, String messageText, LocalDateTime date) {
         this.idSender = idSender;
         this.idReceiver = idReceiver;
         this.messageText = messageText;
@@ -30,7 +30,7 @@ public class Message extends Entity<Long> {
      * @param messageText the text of the message
      * @param date the date of the message
      */
-    public Message(Long id,Long idSender, Long idReceiver, String messageText, LocalDateTime date) {
+    public Message(Long id, Long idSender, Long idReceiver, String messageText, LocalDateTime date) {
         this.setId(id);
         this.idSender = idSender;
         this.idReceiver = idReceiver;

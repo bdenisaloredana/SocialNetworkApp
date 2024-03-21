@@ -7,10 +7,10 @@ import com.example.demo.entities.User;
 import java.sql.*;
 import java.util.*;
 
-public class FriendshipDbRepository{
+public class FriendshipDbRepository {
     private String url;
-    private String user;
-    private String password;
+    private String dbUser;
+    private String dbPassword;
 
     /***
      * Constructor for the FriendshipDbRepository.
@@ -20,9 +20,8 @@ public class FriendshipDbRepository{
      */
     public FriendshipDbRepository(String url, String user, String password) {
         this.url = url;
-        this.user = user;
-        this.password = password;
-
+        this.dbUser = user;
+        this.dbPassword = password;
     }
 
     /***
@@ -31,13 +30,15 @@ public class FriendshipDbRepository{
      *           id must not be null
      * @return null- if the friendships with the given id does not exist; the searched friendships-otherwise
      */
-    public Friendship findOne(Long idFriendship) throws SQLException {
+    public Friendship findOne(Long idFriendship) {
         String sql = "select * from friendships where id = ?";
-        try(Connection connection = DriverManager.getConnection(url, user, password);
-        PreparedStatement ps = connection.prepareStatement(sql)){
-            ps.setLong(1,idFriendship);
-            try(ResultSet resultSet = ps.executeQuery()){
-                while(resultSet.next()){
+
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setLong(1, idFriendship);
+            try (ResultSet resultSet = ps.executeQuery()) {
+                while (resultSet.next()) {
                     Long idUser1 = resultSet.getLong("id_user1");
                     Long idUser2 = resultSet.getLong("id_user2");
                     Timestamp date = resultSet.getTimestamp("date");
@@ -46,9 +47,10 @@ public class FriendshipDbRepository{
                     return new Friendship(idFriendship, idUser1, idUser2, date.toLocalDateTime(), status);
                 }
             }
-        }catch(SQLException sq){
+        } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
+
         return null;
     }
 
@@ -59,7 +61,7 @@ public class FriendshipDbRepository{
     public List<Friendship> findAll() {
         List<Friendship> friendships = new ArrayList<>();
 
-        try (Connection connection = DriverManager.getConnection(url, user, password);
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
              PreparedStatement statement = connection.prepareStatement("SELECT * from friendships");
              ResultSet resultSet = statement.executeQuery()) {
 
@@ -73,10 +75,12 @@ public class FriendshipDbRepository{
                 Friendship friendship = new Friendship(id, id_user1, id_user2, date.toLocalDateTime(), status);
                 friendships.add(friendship);
             }
+
             return friendships;
         } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
+
         return friendships;
     }
 
@@ -86,22 +90,19 @@ public class FriendshipDbRepository{
      *         friendship must be not null
      * @return the friendship- if it was successfully saved
      */
-    public Friendship save(Friendship friendship) throws  SQLException {
+    public Friendship save(Friendship friendship) {
         String sql = "insert into friendships (id_user1, id_user2, status) values (?,?,?)";
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-        try(Connection connection = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = connection.prepareStatement(sql)){
-
-
-                ps.setLong(1, friendship.getIdUser1());
-                ps.setLong(2, friendship.getIdUser2());
-                ps.setString(3, "Pending");
-
+            ps.setLong(1, friendship.getIdUser1());
+            ps.setLong(2, friendship.getIdUser2());
+            ps.setString(3, "Pending");
             ps.executeUpdate();
-
-        }catch (SQLException sq){
+        } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
+
         return friendship;
     }
 
@@ -111,19 +112,20 @@ public class FriendshipDbRepository{
      *      id must be not null
      * @return the friendship-if it was successfully deleted; null-otherwise
      */
-    public Friendship delete(Long idFriendship) throws SQLException {
+    public Friendship delete(Long idFriendship) {
         String sql = "delete from friendships where id = ?";
-        Friendship friendship = findOne(idFriendship);
-        try(Connection connection = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = connection.prepareStatement(sql)){
+        Friendship dbFriendship = findOne(idFriendship);
+
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setLong(1, idFriendship);
             ps.executeUpdate();
-
-        }catch (SQLException sq){
+        } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
-        return friendship;
+
+        return dbFriendship;
     }
 
     /***
@@ -132,21 +134,21 @@ public class FriendshipDbRepository{
      *        friendship must not be null
      * @return the old friendship-if it was successfully updated; null-otherwise
      */
-    public Friendship update(Friendship friendship) throws  SQLException {
+    public Friendship update(Friendship friendship) {
         String sql = "update friendships set status = ? where id = ?";
-        Friendship friendship1 = findOne(friendship.getId());
-        try(Connection connection = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = connection.prepareStatement(sql)){
+        Friendship dbFriendship = findOne(friendship.getId());
 
-            ps.setString(1,friendship.getStatus().toString());
-            ps.setLong(2,friendship.getId());
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-
+            ps.setString(1, friendship.getStatus().toString());
+            ps.setLong(2, friendship.getId());
             ps.executeUpdate();
-        }catch (SQLException sq){
+        } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
-        return friendship1;
+
+        return dbFriendship;
     }
 
     /***
@@ -154,14 +156,14 @@ public class FriendshipDbRepository{
      * @param id the given id of the second user
      * @return a list containing the friendships where the second user has the given id
      */
-    public List<Friendship> find(Long id){
+    public List<Friendship> findByIdUser2(Long id) {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "select * from friendships where id_user2 = ?";
-        try (Connection connection = DriverManager.getConnection(url, user, password);
+
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setLong(1, id);
-
             try (ResultSet resultSet = ps.executeQuery()) {
                 while (resultSet.next()) {
                     Long idFriendship = resultSet.getLong("id");
@@ -169,17 +171,16 @@ public class FriendshipDbRepository{
                     String status = resultSet.getString("status");
                     Timestamp date = resultSet.getTimestamp("date");
 
-                    friendships.add(new Friendship(idFriendship, id, idFriend,date.toLocalDateTime(),Status.valueOf(status)));
+                    friendships.add(new Friendship(idFriendship, id, idFriend, date.toLocalDateTime(), Status.valueOf(status)));
                 }
             }
 
             return friendships;
-
         } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
-        return friendships;
 
+        return friendships;
     }
 
     /***
@@ -187,15 +188,14 @@ public class FriendshipDbRepository{
      * @param id the given id of the first user
      * @return a list containing the friendships where the first user has the given id
      */
-    public List<Friendship> search(Long id){
+    public List<Friendship> findByIdUser1(Long id) {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "select * from friendships where id_user1 = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, user, password);
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setLong(1, id);
-
             try (ResultSet resultSet = ps.executeQuery()) {
                 while (resultSet.next()) {
                     Long idFriendship = resultSet.getLong("id");
@@ -203,17 +203,16 @@ public class FriendshipDbRepository{
                     String status = resultSet.getString("status");
                     Timestamp date = resultSet.getTimestamp("date");
 
-                    friendships.add(new Friendship(idFriendship, id, idFriend,date.toLocalDateTime(),Status.valueOf(status)));
+                    friendships.add(new Friendship(idFriendship, id, idFriend, date.toLocalDateTime(), Status.valueOf(status)));
                 }
             }
 
             return friendships;
-
         } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
-        return friendships;
 
+        return friendships;
     }
 
     /***
@@ -222,47 +221,51 @@ public class FriendshipDbRepository{
      * @param idReceiver the given id of the receiver
      * @return a list containing the friendships where the sender has the id idSender and receiver has the id idReceiver
      */
-    public List<Friendship> find(Long idSender, Long idReceiver){
+    public List<Friendship> findBySenderAndReceiver(Long idSender, Long idReceiver) {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "select * from friendships where id_user1 = ? and id_user2 = ?";
-        try(Connection connection = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = connection.prepareStatement(sql)){
-            ps.setLong(1,idSender);
+
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            ps.setLong(1, idSender);
             ps.setLong(2, idReceiver);
-            try(ResultSet resultSet = ps.executeQuery()){
-                while(resultSet.next()){
+            try (ResultSet resultSet = ps.executeQuery()) {
+                while (resultSet.next()) {
                     Long id = resultSet.getLong("id");
                     Long idUser1 = resultSet.getLong("id_user1");
                     Long idUser2 = resultSet.getLong("id_user2");
                     Timestamp date = resultSet.getTimestamp("date");
                     Status status = Status.valueOf(resultSet.getString("status"));
 
-                    friendships.add( new Friendship(id, idUser1, idUser2, date.toLocalDateTime(), status));
+                    friendships.add(new Friendship(id, idUser1, idUser2, date.toLocalDateTime(), status));
                 }
+
                 return friendships;
             }
-        }catch(SQLException sq){
+        } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
+
         return null;
     }
 
     /***
      * Finds the ids of the friends of a given user.
-     * @param user1 the id of the user for whom we search the friends
+     * @param user the id of the user for whom we search the friends
      * @return a list containing the ids of the friends of the given user
      */
-    public List<Long> findFriends(User user1) {
+    public List<Long> findFriendsOfUser(User user) {
         List<Long> users = new ArrayList<>();
         String sql = "select id_user1 as id from friendships where id_user2 = ? and status=? union select id_user2 as id from friendships where id_user1 = ? and status = ?";
-        try (Connection connection = DriverManager.getConnection(url, user, password);
+
+        try (Connection connection = DriverManager.getConnection(url, dbUser, dbPassword);
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            ps.setLong(1, user1.getId());
+            ps.setLong(1, user.getId());
             ps.setString(2, "Accepted");
-            ps.setLong(3, user1.getId());
+            ps.setLong(3, user.getId());
             ps.setString(4, "Accepted");
-
             try (ResultSet resultSet = ps.executeQuery()) {
                 while (resultSet.next()) {
                     Long id = resultSet.getLong("id");
@@ -271,10 +274,10 @@ public class FriendshipDbRepository{
             }
 
             return users;
-
         } catch (SQLException sq) {
             System.out.println(sq.getMessage());
         }
+
         return users;
     }
 }

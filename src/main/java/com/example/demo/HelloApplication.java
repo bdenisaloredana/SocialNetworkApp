@@ -21,12 +21,12 @@ public class HelloApplication extends Application {
         FriendshipDbRepository friendshipRepository = new FriendshipDbRepository("jdbc:postgresql://localhost:5432/socialNetwork", "postgres", "postgres");
         MessageDbRepository messageRepository = new MessageDbRepository("jdbc:postgresql://localhost:5432/socialNetwork", "postgres", "postgres");
         UserService userService = new UserService(userRepository, friendshipRepository);
-        MessageService messageService= new MessageService(messageRepository);
+        MessageService messageService = new MessageService(messageRepository);
         FriendshipService friendshipService = new FriendshipService(friendshipRepository, userRepository);
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/LoginView.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 550, 400);
         LoginController loginController = fxmlLoader.getController();
-        loginController.setService(userService, messageService, friendshipService);
+        loginController.initController(userService, messageService, friendshipService);
         stage.setScene(scene);
         stage.setTitle("Log in");
         stage.show();

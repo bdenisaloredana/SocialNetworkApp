@@ -1,6 +1,5 @@
 package com.example.demo;
 
-
 import com.example.demo.repositories.FriendshipDbRepository;
 import com.example.demo.repositories.UserDbRepository;
 import com.example.demo.services.FriendshipService;
@@ -9,18 +8,12 @@ import com.example.demo.services.UserService;
 
 public class Main {
     public static void main(String[] args) {
-
-
         UserDbRepository userRepository = new UserDbRepository("jdbc:postgresql://localhost:5432/socialNetwork", "postgres", "postgres");
         FriendshipDbRepository friendshipRepository = new FriendshipDbRepository("jdbc:postgresql://localhost:5432/socialNetwork", "postgres", "postgres");
-        UserService userService = new UserService(userRepository,friendshipRepository);
+        UserService userService = new UserService(userRepository, friendshipRepository);
         FriendshipService friendshipService = new FriendshipService(friendshipRepository, userRepository);
 
-
-
-
-
-       //userService.addUser("Andreea", "Liescu", 45, "1234", "andreealiescu");
+        //userService.addUser("Andreea", "Liescu", 45, "1234", "andreealiescu");
         //System.out.println(friendshipService.findAll());
         //userService.addUser("Ioana", "Sorescu", 44, "1234", "ioanasorescu");
         //userService.addUser("Cosmina", "Salajean", 18, "1234", "cosminasalajean");
@@ -35,6 +28,5 @@ public class Main {
         //friendshipService.addFriendship(12L, 16L);
         //friendshipService.addFriendship(12L, 15L);
         //System.out.println(userRepository.findOne(12L).getFriends());
-
     }
 }

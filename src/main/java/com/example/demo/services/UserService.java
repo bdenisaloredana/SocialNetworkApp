@@ -6,6 +6,7 @@ import com.example.demo.repositories.FriendshipDbRepository;
 import com.example.demo.repositories.UserDbRepository;
 import com.example.demo.utils.observer.Observable;
 import com.example.demo.utils.observer.Observer;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -15,13 +16,13 @@ import java.util.List;
 
 
 public class UserService implements Observable {
-    UserDbRepository userRepo;
-    FriendshipDbRepository friendshipRepo;
-    private final List<Observer> observers=new ArrayList<>();
+    private UserDbRepository userRepo;
+    private FriendshipDbRepository friendshipRepo;
+    private final List<Observer> observers = new ArrayList<>();
 
-    /**
+    /***
      * Constructor for the UserService.
-     * @param userRepo the users repository
+     * @param userRepo       the users repository
      * @param friendshipRepo the friendships repository
      */
     public UserService(UserDbRepository userRepo, FriendshipDbRepository friendshipRepo) {
@@ -29,24 +30,22 @@ public class UserService implements Observable {
         this.friendshipRepo = friendshipRepo;
     }
 
-    /**
-     *Adds a user in the database.
-     * @param firstName the first name of the user
-     * @param lastName  the last name of the user
-     * @param age the age of the user
+    /***
+     * Adds a user in the database.
+     * @param firstName     the first name of the user
+     * @param lastName      the last name of the user
+     * @param age           the age of the user
      * @param passwordGiven the password of the user
-     * @param username the username of the user
+     * @param username      the username of the user
      */
-    public void addUser(String firstName, String lastName, Integer age, String passwordGiven, String username) throws  SQLException {
+    public void addUser(String firstName, String lastName, Integer age, String passwordGiven, String username) throws SQLException {
         String salt = generateSalt();
         String password = createSecurePassword(passwordGiven, salt);
         User user = new User(firstName, lastName, username, age, password, salt);
         userRepo.save(user);
-
     }
 
-
-    /**
+    /***
      * Finds a user in the database by a given id.
      * @param id the id of the user we are searching for
      * @return the user with the given id-if it exists; null-otherwise
@@ -55,7 +54,7 @@ public class UserService implements Observable {
         return this.userRepo.findOne(id);
     }
 
-    /**
+    /***
      * Getter for all the users from the database.
      * @return all the users from the database
      */
@@ -63,13 +62,12 @@ public class UserService implements Observable {
         return this.userRepo.findAll();
     }
 
-
     /***
      * Finds a user by his username.
      * @param username the username of the user we are searching for
      * @return the user-if it exists; null-otherwise
      */
-    public User findUserByUsername(String username){
+    public User findUserByUsername(String username) {
         return this.userRepo.find(username);
     }
 
@@ -78,11 +76,11 @@ public class UserService implements Observable {
      * @param name the name of the users we are searching for
      * @return a list containing the users having the given name
      */
-    public List<User> getUsersByName(String name){
-        return userRepo.findByName(name);
+    public List<User> getUsersByName(String name) {
+        return userRepo.findUsersByName(name);
     }
 
-    public List<User> getAll(){
+    public List<User> getAll() {
         return this.userRepo.findAll();
     }
 
@@ -92,9 +90,7 @@ public class UserService implements Observable {
      * @param salt the generated salt for the password
      * @return secured password
      */
-
-    public String createSecurePassword(String password, String salt){
-
+    public String createSecurePassword(String password, String salt) {
         String generatedPassword = null;
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -107,11 +103,11 @@ public class UserService implements Observable {
                 sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16)
                         .substring(1));
             }
-
             generatedPassword = sb.toString();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
         return generatedPassword;
     }
 
@@ -123,6 +119,7 @@ public class UserService implements Observable {
         SecureRandom secureRandom = new SecureRandom();
         byte[] salt = new byte[16];
         secureRandom.nextBytes(salt);
+
         return salt.toString();
     }
 
@@ -133,7 +130,6 @@ public class UserService implements Observable {
     @Override
     public void addObserver(Observer observer) {
         observers.add(observer);
-
     }
 
     /***
@@ -150,16 +146,12 @@ public class UserService implements Observable {
      */
     @Override
     public void notifyObservers() {
-
-        observers.stream().forEach(x-> {
+        observers.stream().forEach(observer -> {
             try {
-                x.update();
+                observer.update();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
     }
-
-
-
 }

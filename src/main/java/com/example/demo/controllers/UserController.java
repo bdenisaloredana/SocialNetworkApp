@@ -14,12 +14,12 @@ import com.example.demo.services.FriendshipService;
 import com.example.demo.services.MessageService;
 import com.example.demo.services.UserService;
 import com.example.demo.utils.observer.Observer;
+
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserController implements Observer {
-
     public TableView<User> friendsTableView;
     public TableColumn<User, String> friendsTableViewFirstName;
     public TableColumn<User, String> friendsTableViewLastName;
@@ -47,18 +47,17 @@ public class UserController implements Observer {
     public TableView<FriendshipDto> sentRequestsTableView;
     public TableColumn<FriendshipDto, String> sentRequestsTableViewFirstNameTableColumn;
     public TableColumn<FriendshipDto, String> sentRequestsTableViewLastNameTableColumn;
-
-    ObservableList<User> modelFriends = FXCollections.observableArrayList();
-    ObservableList<User> searchedUsersModel = FXCollections.observableArrayList();
-    ObservableList<FriendshipDto> modelRequestsSent = FXCollections.observableArrayList();
-    ObservableList<FriendshipDto> modelRequests = FXCollections.observableArrayList();
-    ObservableList<User> modelSearch= FXCollections.observableArrayList();
-    ObservableList<MessageDto> modelMessages= FXCollections.observableArrayList();
-    UserService userService;
-    FriendshipService friendshipService;
-    MessageService messageService;
-    User user;
-    User friend;
+    private ObservableList<User> modelFriends = FXCollections.observableArrayList();
+    private ObservableList<User> searchedUsersModel = FXCollections.observableArrayList();
+    private ObservableList<FriendshipDto> modelRequestsSent = FXCollections.observableArrayList();
+    private ObservableList<FriendshipDto> modelRequests = FXCollections.observableArrayList();
+    private ObservableList<User> modelSearch = FXCollections.observableArrayList();
+    private ObservableList<MessageDto> modelMessages = FXCollections.observableArrayList();
+    private UserService userService;
+    private FriendshipService friendshipService;
+    private MessageService messageService;
+    private User user;
+    private User friend;
 
     /***
      * Sets up the UserController.
@@ -67,10 +66,10 @@ public class UserController implements Observer {
      * @param messageService the messages service
      * @param user the current active user
      */
-    public void setUserService(UserService userService, FriendshipService friendshipService, MessageService messageService,User user){
+    public void initController(UserService userService, FriendshipService friendshipService, MessageService messageService, User user) {
         this.userService = userService;
         this.friendshipService = friendshipService;
-        this.user =user;
+        this.user = user;
         this.messageService = messageService;
         userService.addObserver(this);
         messageService.addObserver(this);
@@ -79,8 +78,6 @@ public class UserController implements Observer {
         initModelRequests();
         innitSentRequests();
         innitModelSearch();
-
-
     }
 
     /***
@@ -88,39 +85,11 @@ public class UserController implements Observer {
      */
     @FXML
     public void initialize() {
-        friendsTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        friendsTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        friendsTableView.setItems(modelFriends);
-
-        requestsTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        requestsTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        requestsTableViewStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        requestsTableViewDate.setCellValueFactory(new PropertyValueFactory<>("requestDate"));
-        requestsTableView.setItems(modelRequests);
-
-        searchTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        searchTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        searchTableView.setItems(searchedUsersModel);
-
-        messagesTableViewUsernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
-        messagesTableViewMessagesColumn.setCellValueFactory(new PropertyValueFactory<>("text"));
-        messagesTableView.setItems(modelMessages);
-
-        friendsTableViewUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
-        friendsTableViewMessages.setItems(modelFriends);
-
-        sentRequestsTableViewFirstNameTableColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        sentRequestsTableViewLastNameTableColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        sentRequestsTableView.setItems(modelRequestsSent);
-
-        messageTextField.setPromptText("Write message...");
-        searchTableViewTextField.textProperty().addListener((observable, oldValue, newValue)->{
-            searchedUsersModel.setAll(modelSearch);
-            searchedUsersModel.setAll(searchedUsersModel.stream().filter(user->user.getFirstName().contains(newValue.trim()) ||
-                    user.getLastName().equals(newValue.trim())).collect(Collectors.toList()));
-
-        });
-        searchTableViewTextField.setPromptText("Search user...");
+        initializeFriendsTab();
+        initializeReceivedRequestsTab();
+        initializeSearchFriendsTab();
+        initializeSendMessagesTab();
+        initializeSentRequestsTab();
     }
 
     /***
@@ -130,7 +99,7 @@ public class UserController implements Observer {
         try {
             List<FriendshipDto> sent = friendshipService.findRequestsSentByUser(this.user);
             modelRequestsSent.setAll(sent);
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
     }
@@ -139,7 +108,7 @@ public class UserController implements Observer {
      * Fills the modelMessages with information.
      * @param friend the friend the user is messaging
      */
-    private void innitMessages(User friend){
+    private void innitMessages(User friend) {
         List<MessageDto> messages = messageService.getMessagesBetweenFriends(user, friend);
         modelMessages.setAll(messages);
     }
@@ -149,21 +118,21 @@ public class UserController implements Observer {
      */
     private void initModelFriendships() {
         try {
-            List<Long> friendsid = this.friendshipService.findFriendsOfUser(user);
+            List<Long> friendsId = this.friendshipService.findFriendsOfUser(user);
             List<User> users = new ArrayList<>();
-            for (Long id : friendsid)
+
+            for (Long id : friendsId)
                 users.add(userService.findUser(id));
             modelFriends.setAll(users);
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
-
     }
 
     /***
      * Fills the modelSearch and searchedUsersModel with information.
      */
-    public void innitModelSearch(){
+    public void innitModelSearch() {
         List<User> users = userService.getAll();
         users.remove(user);
         searchedUsersModel.setAll(users);
@@ -173,40 +142,37 @@ public class UserController implements Observer {
     /***
      *Fills the modelRequests with information.
      */
-    public void initModelRequests(){
-        try {
-            List<FriendshipDto> friendships = friendshipService.findFriendshipsOfUser(this.user);
-            modelRequests.setAll(friendships);
-        }catch (SQLException sqlException){
-            System.out.println(sqlException.getMessage());
-        }
-
+    public void initModelRequests() {
+        List<FriendshipDto> friendships = friendshipService.findReceivedFriendshipsOfUser(this.user);
+        modelRequests.setAll(friendships);
     }
 
     /***
      * Handles the removing of a friend.
      */
-    public void handleDeleteFriend(){
+    public void handleDeleteFriend() {
         User friend = friendsTableView.getSelectionModel().getSelectedItem();
+        if (friend == null) {
+            return;
+        }
         Long idFriend = friend.getId();
+
         try {
-            if (friend != null) {
-                Friendship friendship = friendshipService.findFriendshipByReceiverAndSender(idFriend, user.getId());
-                if (friendship != null) {
-                    friendshipService.deleteFriendship(friendship.getId());
-                    MessageAlert.showMessage(null, Alert.AlertType.CONFIRMATION, "Confirmation", "Friend removed!");
-                } else {
-                    friendship = friendshipService.findFriendshipByReceiverAndSender(user.getId(), idFriend);
-                    if (friendship != null) {
-                        friendshipService.deleteFriendship(friendship.getId());
-                        MessageAlert.showMessage(null, Alert.AlertType.CONFIRMATION, "Confirmation", "Friend removed!");
-                    }
+            Friendship dbFriendship = friendshipService.findFriendshipByReceiverAndSender(idFriend, user.getId());
+            if (dbFriendship != null) {
+                friendshipService.deleteFriendship(dbFriendship.getId());
+                MessageAlert.showMessage(null, Alert.AlertType.CONFIRMATION, "Confirmation", "Friend removed!");
+            } else {
+                dbFriendship = friendshipService.findFriendshipByReceiverAndSender(user.getId(), idFriend);
+                if (dbFriendship == null) {
+                    return;
                 }
+                friendshipService.deleteFriendship(dbFriendship.getId());
+                MessageAlert.showMessage(null, Alert.AlertType.CONFIRMATION, "Confirmation", "Friend removed!");
             }
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
-
     }
 
     /***
@@ -214,15 +180,17 @@ public class UserController implements Observer {
      */
     public void handleAcceptRequest() {
         FriendshipDto friend = requestsTableView.getSelectionModel().getSelectedItem();
+        if (friend == null) {
+            return;
+        }
+
         try {
-            if (friend != null) {
-                if (Status.valueOf(friend.getStatus()) == Status.Pending) {
-                    friendshipService.updateFriendship(friend.getIdFriendship(), Status.Accepted);
-
-                } else MessageAlert.showErrorMessage(null, "The status of the friendship has already been set!");
-
+            if (Status.valueOf(friend.getStatus()) == Status.Pending) {
+                friendshipService.updateFriendship(friend.getIdFriendship(), Status.Accepted);
+            } else {
+                MessageAlert.showErrorMessage(null, "The status of the friendship has already been set!");
             }
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
     }
@@ -230,18 +198,19 @@ public class UserController implements Observer {
     /***
      * Handles the declining of a friendship request.
      */
-    public void handleDeclineRequest(){
-
+    public void handleDeclineRequest() {
         FriendshipDto friend = requestsTableView.getSelectionModel().getSelectedItem();
-        try {
-            if (friend != null) {
-                if (Status.valueOf(friend.getStatus()) == Status.Pending) {
-                    friendshipService.updateFriendship(friend.getIdFriendship(), Status.Declined);
-                } else
-                    MessageAlert.showErrorMessage(null, "The status of the friendship has already been set!");
+        if (friend == null) {
+            return;
+        }
 
+        try {
+            if (Status.valueOf(friend.getStatus()) == Status.Pending) {
+                friendshipService.updateFriendship(friend.getIdFriendship(), Status.Declined);
+            } else {
+                MessageAlert.showErrorMessage(null, "The status of the friendship has already been set!");
             }
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
     }
@@ -250,14 +219,13 @@ public class UserController implements Observer {
      * Updates the models after a modification.
      */
     @Override
-    public void update(){
+    public void update() {
         initModelFriendships();
         initModelRequests();
-        if (friend != null)
+        if (friend != null) {
             innitMessages(friend);
+        }
         innitSentRequests();
-
-
     }
 
     /***
@@ -265,19 +233,23 @@ public class UserController implements Observer {
      */
     public void addNewFriend() {
         User friendToAdd = searchTableView.getSelectionModel().getSelectedItem();
+        if(friendToAdd == null){
+            return;
+        }
 
         try {
-            List<FriendshipDto> friendships = friendshipService.findFriendshipsOfUser(this.user);
+            List<FriendshipDto> friendships = friendshipService.findReceivedFriendshipsOfUser(this.user);
             List<Long> friends = friendshipService.findFriendsOfUser(user);
             boolean ok = false;
+
             for (Long id : friends)
-                if (Objects.equals(id, friendToAdd.getId()))
+                if (Objects.equals(id, friendToAdd.getId())) {
                     ok = true;
+                }
+
             if (ok) {
                 MessageAlert.showErrorMessage(null, "You are already friends with this person!");
             } else {
-
-
                 ok = false;
                 for (FriendshipDto friendshipDto : friendships)
                     if (Objects.equals(friendshipDto.getIdFriend(), friendToAdd.getId())) {
@@ -287,13 +259,13 @@ public class UserController implements Observer {
                 if (!ok) {
                     friendshipService.addFriendship(user.getId(), friendToAdd.getId());
                     MessageAlert.showMessage(null, Alert.AlertType.CONFIRMATION, "Confirmation", "Friendship request sent!");
-                } else
+                } else {
                     MessageAlert.showErrorMessage(null, "You already have a friendship request from this person!");
+                }
             }
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
-
     }
 
     /***
@@ -308,11 +280,11 @@ public class UserController implements Observer {
     /***
      *  Handles the sending of a message.
      */
-    public void handleSendMessage(){
+    public void handleSendMessage() {
         String message = messageTextField.getText();
         try {
             messageService.addMessage(user.getId(), friend.getId(), message);
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
     }
@@ -320,13 +292,69 @@ public class UserController implements Observer {
     /***
      * Handles the deleting of a sent friendship request.
      */
-    public void handleDeleteSentRequest(){
+    public void handleDeleteSentRequest() {
         FriendshipDto request = sentRequestsTableView.getSelectionModel().getSelectedItem();
         try {
             friendshipService.deleteFriendship(request.getIdFriendship());
-        }catch (SQLException sqlException){
+        } catch (SQLException sqlException) {
             System.out.println(sqlException.getMessage());
         }
     }
 
+    /***
+     * Initializes the friends tab.
+     */
+    private void initializeFriendsTab() {
+        friendsTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        friendsTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        friendsTableViewUsername.setCellValueFactory(new PropertyValueFactory<>("username"));
+        friendsTableView.setItems(modelFriends);
+    }
+
+    /***
+     * Initializes the received requests tab.
+     */
+    private void initializeReceivedRequestsTab() {
+        requestsTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        requestsTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        requestsTableViewStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        requestsTableViewDate.setCellValueFactory(new PropertyValueFactory<>("requestDate"));
+        requestsTableView.setItems(modelRequests);
+    }
+
+    /***
+     * Initializes the search tab.
+     */
+    private void initializeSearchFriendsTab() {
+        searchTableViewFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        searchTableViewLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        searchTableViewTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchedUsersModel.setAll(modelSearch);
+            searchedUsersModel.setAll(searchedUsersModel.stream().filter(user -> user.getFirstName().contains(newValue.trim()) ||
+                    user.getLastName().equals(newValue.trim())).collect(Collectors.toList()));
+
+        });
+        searchTableViewTextField.setPromptText("Search user...");
+        searchTableView.setItems(searchedUsersModel);
+    }
+
+    /***
+     * Initializes the messages tab.
+     */
+    private void initializeSendMessagesTab() {
+        messagesTableViewUsernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
+        messagesTableViewMessagesColumn.setCellValueFactory(new PropertyValueFactory<>("text"));
+        messageTextField.setPromptText("Write message...");
+        messagesTableView.setItems(modelMessages);
+        friendsTableViewMessages.setItems(modelFriends);
+    }
+
+    /***
+     * Initializes the sent requests tab.
+     */
+    private void initializeSentRequestsTab() {
+        sentRequestsTableViewFirstNameTableColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        sentRequestsTableViewLastNameTableColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        sentRequestsTableView.setItems(modelRequestsSent);
+    }
 }

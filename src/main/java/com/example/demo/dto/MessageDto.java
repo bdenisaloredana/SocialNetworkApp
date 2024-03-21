@@ -1,6 +1,5 @@
 package com.example.demo.dto;
 
-import com.example.demo.controllers.MessageAlert;
 import java.time.LocalDateTime;
 
 public class MessageDto{
@@ -67,5 +66,4 @@ public class MessageDto{
     public void setDate(LocalDateTime date) {
         this.date = date;
     }
-
 }
